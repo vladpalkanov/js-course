@@ -1,1 +1,1 @@
-# js-course
+# Курс по Javascript
