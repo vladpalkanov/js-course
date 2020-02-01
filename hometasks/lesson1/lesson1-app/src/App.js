@@ -1,156 +1,102 @@
-// type-check
 import React from 'react'
 
-const names = [
-  'Vlad',
-  'Alex',
-  'Max',
-  'Ihor',
-  'Bob',
-  'John',
-  'Vladimir',
-  'Vladlen',
-]
+const withTooltip = Component => {
+  class WithTooltip extends React.Component {
+    state = { hovering: false }
+    mouseOver = () => this.setState({ hovering: true })
+    mouseOut = () => this.setState({ hovering: false })
+  
+    render() {
+      return (
+        <Component
+          {...this.props}
+          hovering={this.state.hovering}
+          mouseOver={this.mouseOver}
+          mouseOut={this.mouseOut}
+        />
+      )
+    }
+  }
 
-const Users = Array.from({ length: 10 }).map(() => ({
-  name: names[Math.floor(Math.random() * 7)],
-  age: Math.floor(Math.random() * 100),
-}))
+  return WithTooltip
+}
 
-const loadUser = ({ search }) => {
+const loadData = () => {
   return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // if (Math.random() >= 0.6) {
-      //   reject('Oops... Something gone wrong!');
-      // }
-      let response = Users
-      if (search) {
-        response = response.filter(item => item.name.includes(search))
-      }
-
-      resolve(response)
-
-    }, 1500)
+    setTimeout(() => resolve({
+      message: 'hello!'
+    }), 2000)
   })
 }
 
-export class UserList extends React.PureComponent {
-  state = {
-    loading: false,
-    error: null,
-    items: [],
-    selectedId: null,
-  }
-
-  load = async () => {
-    this.setState({
-      loading: true,
-    })
-
-    try {
-      const users = await loadUser({ search: this.state.search })
-      console.log(users)
-      this.setState({ items: users })
-    } catch (error) {
-      this.setState({ error })
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
-
-  componentDidMount() {
-    this.load()
-  }
-
-  componentDidUpdate(_, prevState) {
-    if (this.state.search !== prevState.search) {
-      this.load()
-    }
-  }
-
-
-
-  handleSearch = event => {
-    this.setState({
-      search: event.target.value,
-    })
-  }
-
-  render() {
-    if (this.state.loading) {
-      return <div>Loading...</div>
-    }
-    
-    if (this.state.error) {
-      return <div>{this.state.error}</div>
+const withData = Component => {
+  return class WithData extends React.Component {
+    state = {
+      data: null
     }
 
-    return (
-      <div>
-        <input onChange={this.handleSearch} value={this.state.search} />
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Age</th>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.items.map(item => {
-              return (
-                <tr>
-                  <th>{item.name}</th>
-                  <th>{item.age}</th>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-    )
+    async componentDidMount() {
+      try {
+        const data = await loadData()
+        this.setState({ data })
+      } catch (error) {
+
+      }
+    }
+
+    render() {
+      console.log(this.state)
+      return (
+        <Component {...this.props} data={this.state.data} />
+      )
+    }
   }
 }
 
-export default class App extends React.Component {
-  constructor(props) {
-    super(props);
+const TrendChartComponent = props => {
+  return (
+    <div>
+      {props.hovering && <div>TOOLTIP!</div>}
+      <div
+        onMouseOver={props.mouseOver}
+        onMouseOut={props.mouseOut}
+      >
+        Trend Chart content: {props.data && props.data.message}
+      </div>
+    </div>
+  )
+}
 
-    this.state = {
-      value: 0,
+const compose = (...fns) => {
+  return value => {
+    let result = value;
+
+    for (let fn of fns) {
+      result = fn(result)
+    }
+
+    return result;
+  }
+}
+
+const withPure = BaseComponent => {
+  return class WithPure extends React.PureComponent {
+    render() {
+      return <BaseComponent {...this.props}  />
     }
   }
+}
 
-  // static getDerivedStateFromProps() {
-  //   console.log('getDerivedStateFromProps')
-  // }
+const enhancer = compose(
+  withData,
+  withTooltip,
+  withPure,
+)
 
-  // static getSnapshotBeforeUpdate(props) {
-  // }
+const EnhancedTrendChart = enhancer(TrendChartComponent)
 
-  handleClick = () => {
-    this.setState(currentState => {
-      return {
-        value: currentState.value + 1,
-      }
-    })
-  }
-
-
-  componentDidMount() {
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {
-  }
-
-  componentWillUnmount() {
-  }
-
-  render() {
-    return (
-      <div>
-        <UserList />
-      </div>
-    )
-  }
-
+export default function App() {
+  return (
+    <TrendChart />
+  )
 }
