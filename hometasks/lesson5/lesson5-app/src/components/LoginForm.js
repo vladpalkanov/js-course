@@ -6,7 +6,7 @@ import { withForm } from './withForm'
 export const LoginFormView = props => {
   console.log(props)
   return (
-    <form>
+    <form onSubmit={props.onSubmit} onChange={}>
       <TextField
         name="email"
         label="Email"
@@ -31,7 +31,13 @@ export const LoginFormView = props => {
   )
 }
 
-export const LoginForm = withForm(/** config */)(LoginFormView)
+
+export const LoginForm = withForm({
+  validation: {},
+  onSubmit: async values => {
+    await fetch.post('/login')
+  }
+})(LoginFormView)
 
 LoginForm.propTypes = {
   values: propTypes.shape({

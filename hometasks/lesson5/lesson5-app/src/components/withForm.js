@@ -10,6 +10,12 @@ export const withForm = config => // { validation }
         isSubmitting: false,
       };
 
+      handleSubmit = () => {
+        this.setState({ isSubmitting: true })
+        await config.onSubmit(this.state.values)
+        this.setState({ isSubmitting: false })
+      }
+
       setFieldValue = (name, value) => {
         this.setState(currentState => {
           const nextValues  = { ...currentState.values, [name]: value }
@@ -33,6 +39,7 @@ export const withForm = config => // { validation }
       render() {
         return (
           <BaseComponent 
+            onSubmit={config.onSubmit}
             values={this.state.values}
             dirty={this.state.dirty}
             errors={this.state.errors}

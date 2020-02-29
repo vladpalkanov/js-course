@@ -104,9 +104,19 @@ import './App.css';
 // const EnhancedTextField = withField(TextField)
 
 class App extends React.Component {
+  state = {
+    search: 'qweqe',
+  }
+
+  handleSearch = event => {
+    console.log(event.target.value)
+  }
+
   render() {
     return (
-      <LoginForm />
+      <div>
+        <input defaultValue={this.state.search} onChange={this.handleSearch} />
+      </div>
     )
   }
 }
